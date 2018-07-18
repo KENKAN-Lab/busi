@@ -13,14 +13,14 @@
 * Antoine
 * Goff Gratch
 
-https://github.com/KENKAN-Lab/Simulation/blob/master/basic/SaturatedVaporPressure.ipynb
+https://github.com/KENKAN-Lab/Simulation/blob/master/library/SaturatedVaporPressure.ipynb
 
 ### 水蒸気圧の計算
-https://github.com/KENKAN-Lab/Simulation/blob/master/basic/VaporPressure.ipynb
+https://github.com/KENKAN-Lab/Simulation/blob/master/library/VaporPressure.ipynb
 
 ### 温度と水蒸気(EXCEL)
 * 温度から飽和水蒸気圧および飽和水蒸気圧を温度で微分した値を計算するシート
 * 空気線図
 * 温度から湿度を計算するための貼付けシート
 
-https://github.com/KENKAN-Lab/Simulation/blob/master/basic/%E6%B8%A9%E5%BA%A6%E3%81%A8%E6%B0%B4%E8%92%B8%E6%B0%97.xlsx
+https://github.com/KENKAN-Lab/Simulation/blob/master/EXCEL/%E6%B8%A9%E5%BA%A6%E3%81%A8%E6%B0%B4%E8%92%B8%E6%B0%97.xlsx
