@@ -1,9 +1,11 @@
 # envelope performance simple unit test
 import unittest
 import nbimporter
+import sys
+sys.path.append('../')
 
-from SaturatedVaporPressure import get_saturated_vapor_pressure              as SVP
-from SaturatedVaporPressure import get_saturated_vapor_pressure_differential as dSVPdT
+from library.SaturatedVaporPressure import get_saturated_vapor_pressure              as SVP
+from library.SaturatedVaporPressure import get_saturated_vapor_pressure_differential as dSVPdT
 
 class TestSVP(unittest.TestCase):
     
