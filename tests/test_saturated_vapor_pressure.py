@@ -1,15 +1,12 @@
-# envelope performance simple unit test
 import unittest
-import nbimporter
-import sys
-sys.path.append('../')
 
-from library.saturated_vapor_pressure import get_saturated_vapor_pressure              as SVP
-from library.saturated_vapor_pressure import get_saturated_vapor_pressure_differential as dSVPdT
+from src.saturated_vapor_pressure import get_saturated_vapor_pressure as svp
+from src.saturated_vapor_pressure import get_saturated_vapor_pressure_differential as dsvp_dt
+
 
 class TestSVP(unittest.TestCase):
     
-    def test_get_SVP(self):
+    def test_get_svp(self):
         
         test_patterns = [
                 ('SONNTAG',      'water', 273.15,    611.212840000,   44.409707360),
@@ -49,13 +46,13 @@ class TestSVP(unittest.TestCase):
                 ('GoffGratch',   'ice'  , 273.15,    611.226430100,   50.338119000),
                 ]
         
-        for equation, status, T, expected_SVP, expected_dSVPdT in test_patterns:
-            with self.subTest(equation=equation,status=status,T=T):
-                actual_SVP    = SVP   (equation, status, T)
-                actual_dSVPdT = dSVPdT(equation, status, T)
-                self.assertAlmostEqual(actual_SVP,    expected_SVP,    delta = expected_SVP*0.0001)
-                self.assertAlmostEqual(actual_dSVPdT, expected_dSVPdT, delta = expected_SVP*0.0001)
+        for equation, status, t, expected_svp, expected_dsvp_dt in test_patterns:
+            with self.subTest(equation=equation, status=status, t=t):
+                actual_svp = svp(equation, status, t)
+                actual_dsvp_dt = dsvp_dt(equation, status, t)
+                self.assertAlmostEqual(actual_svp, expected_svp, delta=expected_svp*0.0001)
+                self.assertAlmostEqual(actual_dsvp_dt, expected_dsvp_dt, delta=expected_svp*0.0001)
+
 
 if __name__ == "__main__":
     unittest.main()
-    
