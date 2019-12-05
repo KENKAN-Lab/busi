@@ -1,6 +1,8 @@
 import math
 from scipy.optimize import newton
 
+import src.saturated_vapor_pressure as svp
+
 
 def get_pmv_ppd(
         met_value: float, p_eff: float, t_a: float, t_r_bar: float, clo_value: float, v_ar: float, rh: float
@@ -37,36 +39,95 @@ def get_pmv_ppd(
     # the effective mechanical power, W/m2
     w = convert_met_to_wm2(p_eff)
 
-    # the internal heat production in the human body, W/m2
-    mw = m - w
-
     # the clothing surface area factor
     f_cl = get_f_cl(i_cl)
 
-    t_cl = newton(lambda t: get_t_cl(f_cl, i_cl, mw, t_a, t, v_ar, t_r_bar) - t, 0.001)
+    # the clothing surface temperature, degree C
+    t_cl = newton(lambda t: get_t_cl(f_cl, i_cl, t_a, t, v_ar, t_r_bar, m, w) - t, 0.001)
 
-    h_c = max(12.1 * math.sqrt(v_ar), 2.38 * abs(t_cl - t_a) ** 0.25)
+    # the convective heat transfer coefficient, W/m2K
+    h_c = get_h_c(t_a, t_cl, v_ar)
 
-    pmv = get_pmv(f_cl, h_c, m, p_a, t_a, t_cl, t_r_bar, w)
+    # PMV, PPD
+    pmv, ppd = get_pmv(f_cl, h_c, m, p_a, t_a, t_cl, t_r_bar, w)
 
-    return pmv
+    return pmv, ppd
 
 
-def get_t_cl(f_cl, i_cl, mw, t_a, t_cl, v_ar, t_r_bar):
+def get_h_c(t_a: float, t_cl: float, v_ar: float) -> float:
+    """
 
-    h_c = max(12.1 * math.sqrt(v_ar), 2.38 * abs(t_cl - t_a) ** 0.25)
+    Args:
+        t_a: the air temperature, degree C
+        t_cl: the clothing surface temperature, degree C
+        v_ar: the relative air velocity, m/s
 
-    return 35.7 - 0.028 * mw - i_cl * (
-                3.96 * 10 ** (-8) * f_cl * ((t_cl + 273.0) ** 4.0 - (t_r_bar + 273.0) ** 4.0)
-                + f_cl * h_c * (t_cl - t_a)
+    Returns:
+        the convective heat transfer coefficient, W/m2K
+    """
+
+    return max(12.1 * math.sqrt(v_ar), 2.38 * abs(t_cl - t_a) ** 0.25)
+
+
+def get_t_cl(f_cl, i_cl, t_a, t_cl, v_ar, t_r_bar, m, w):
+    """
+
+    Args:
+        f_cl: the clothing surface area factor
+        i_cl: the clothing insulation, m2K/W
+        t_a: the air temperature, degree C
+        t_cl: the clothing surface temperature, degree C
+        v_ar: the relative air velocity, m/s
+        t_r_bar: the mean radiant temperature, degree C
+        m: the metabolic rate, W/m2
+        w: the effective mechanical power, W/m2
+
+    Returns:
+        the clothing surface temperature, degree C
+    """
+
+    h_c = get_h_c(t_a, t_cl, v_ar)
+
+    return get_skin_temperature(m, w) - i_cl * (
+            get_radiative_heat_loss_from_clothing(f_cl, t_cl, t_r_bar)
+            + get_convective_heat_loss_from_clothing(f_cl, h_c, t_a, t_cl)
     )
+
+
+def get_skin_temperature(m: float, w: float) -> float:
+    """
+
+    Args:
+        m: the metabolic rate, W/m2
+        w: the effective mechanical power, W/m2
+
+    Returns:
+        the skin temperature, degree C
+    """
+
+    return 35.7 - 0.028 * (m - w)
+
+
+def get_radiative_heat_loss_from_clothing(f_cl: float, t_cl: float, t_r_bar: float) -> float:
+    """
+
+    Args:
+        f_cl: the clothing surface area factor
+        t_cl: the clothing surface temperature, degree C
+        t_r_bar: the mean radiant temperature, degree C
+
+    Returns:
+        the radiative heat loss from clothing, W/m2
+    """
+
+    return 3.96 * 10 ** (-8) * f_cl * ((t_cl + 273.0) ** 4.0 - (t_r_bar + 273.0) ** 4.0)
 
 
 def get_pmv(f_cl, h_c, m, p_a, t_a, t_cl, t_r_bar, w):
     """
 
     Args:
-        f_cl: the clothing insulation, m2K/W
+        f_cl: the clothing surface area factor
         h_c: the convective heat transfer coefficient, W/m2K
         m: the metabolic rate, W/m2
         p_a: the water vapour partial pressure, Pa
@@ -84,20 +145,91 @@ def get_pmv(f_cl, h_c, m, p_a, t_a, t_cl, t_r_bar, w):
 
     pmv = (0.303 * math.exp(-0.036 * m) + 0.028) * (
             (m - w)
-            - 3.05 * 10 ** (-3) * (5733.0 - 6.99 * (m - w) - p_a)
-            - max(0.42 * ((m - w) - 58.15), 0.0)
-            - 1.7 * 10 ** (-5) * m * (5867.0 - p_a)
-            - 0.0014 * m * (34.0 - t_a)
-            - 3.96 * 10 ** (-8) * f_cl * ((t_cl + 273) ** 4.0 - (t_r_bar + 273.0) ** 4.0)
-            - f_cl * h_c * (t_cl - t_a))
+            - get_latent_heat_loss_from_skin(m, p_a, w)
+            - get_the_sweating_heat_loss(m, w)
+            - get_latent_heat_loss_with_breathing(m, p_a)
+            - get_sensible_heat_loss_with_breathing(m, t_a)
+            - get_radiative_heat_loss_from_clothing(f_cl, t_cl, t_r_bar)
+            - get_convective_heat_loss_from_clothing(f_cl, h_c, t_a, t_cl))
 
     ppd = get_ppd(pmv=pmv)
 
     return pmv, ppd
 
 
-def get_p_a(rh: float, t_a: float) -> float:
+def get_latent_heat_loss_from_skin(m: float, p_a: float, w: float) -> float:
     """
+
+    Args:
+        m: the metabolic rate, W/m2
+        p_a: the water vapour partial pressure, Pa
+        w: the effective mechanical power, W/m2
+
+    Returns:
+        the latent heat loss from skin, W/m2
+    """
+    return 3.05 * 10 ** (-3) * (5733.0 - 6.99 * (m - w) - p_a)
+
+
+def get_latent_heat_loss_with_breathing(m: float, p_a: float) -> float:
+    """
+
+    Args:
+        m: the metabolic rate, W/m2
+        p_a: the water vapour partial pressure, Pa
+
+    Returns:
+        the latent heat loss with breathing, W/m2
+    """
+
+    return 1.7 * 10 ** (-5) * m * (5867.0 - p_a)
+
+
+def get_sensible_heat_loss_with_breathing(m: float, t_a: float) -> float:
+    """
+
+    Args:
+        m: the metabolic rate, W/m2
+        t_a: the air temperature, degree C
+
+    Returns:
+        the sensible heat loss with breathing, W/m2
+    """
+    return 0.0014 * m * (34.0 - t_a)
+
+
+def get_convective_heat_loss_from_clothing(f_cl: float, h_c: float, t_a: float, t_cl: float) -> float:
+    """
+
+    Args:
+        f_cl: the clothing surface area factor
+        h_c: the convective heat transfer coefficient, W/m2K
+        t_a: the air temperature, degree C
+        t_cl: the clothing surface temperature, degree C
+
+    Returns:
+        the convective heat loss from clothing, W/m2
+    """
+
+    return f_cl * h_c * (t_cl - t_a)
+
+
+def get_the_sweating_heat_loss(m: float, w: float) -> float:
+    """
+
+    Args:
+        m: the metabolic rate, W/m2
+        w: the effective mechanical power, W/m2
+
+    Returns:
+        the sweating heat loss, W/m2
+    """
+
+    return max(0.42 * ((m - w) - 58.15), 0.0)
+
+
+def get_p_a(rh: float, t_a: float) -> float:
+    """get the water vapour partial pressure.
 
     Args:
         rh: relative humidity, %
@@ -108,8 +240,10 @@ def get_p_a(rh: float, t_a: float) -> float:
 
     """
 
-    # TODO 飽和水蒸気圧の計算方法は省エネ基準で採用している方法（WMO?）に揃えた方が良い。
-    return rh / 100. * FNPS(t_a) * 1000.0
+    # the saturated vapour pressure, Pa
+    p_sat = svp.get_saturated_vapor_pressure(equation='SONNTAG', status='water', t=t_a + 273.15)
+
+    return rh / 100.0 * p_sat
 
 
 def convert_clo_to_m2kw(clo):
@@ -171,9 +305,4 @@ def get_ppd(pmv: float) -> float:
 
     return 100.0 - 95.0 * math.exp(-0.03353 * pmv ** 4.0 - 0.2179 * pmv ** 2.0)
 
-
-
-# 飽和水蒸気圧[kPa]の計算（ASHRAE Standard 55-2013）
-def FNPS(T: float) -> float:
-    return math.exp(16.6536 - 4030.183 / (T + 235.0))
 
