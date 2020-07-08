@@ -1,5 +1,12 @@
 from enum import Enum
 
+""" Evaluation on thermal resistance of float glasses and thermal transmittance of glazing
+
+This module is for evaluation on thermal resistance of float glassess and thermal transmittance of glazing, which is
+based on JIS R3107 1988.
+
+"""
+
 
 class GlassDirection(Enum):
     """Direction of the glass
@@ -301,7 +308,10 @@ def get_h_g(direction, delta_t, t_dash_m, s, rho_air, mu_air, c_air, lambda_air)
     # Nusselt value
     nu = get_nu(a, n, gr, pr)
 
-    return get_cc(nu) * lambda_air / s
+    # convective effect coefficient
+    cc = get_cc(nu)
+
+    return cc * lambda_air / s
 
 
 def get_h_r(t_m: float, emissivity1: float, emissivity2: float) -> float:
@@ -646,23 +656,34 @@ class Glass:
     def get_epsilon():
 
         # section 5.2
+        # This value should be used only for the surface of the inside and outside, which is not the low-e surface.
         return 0.837
 
     @staticmethod
     def get_h_i():
+        """
 
-        epsilon = Glass.get_epsilon()
+        Returns:
+            heat transfer coefficient on the inside surface, W/m2 K
+        Notes:
+            This value is supposed to apply for the vertical glasses.
+        """
 
         # section 5.4.2
-        return 5.4 * epsilon + 4.1
+        return 5.4 * Glass.get_epsilon() + 4.1
 
     @staticmethod
     def get_h_e():
+        """
 
-        epsilon = Glass.get_epsilon()
+        Returns:
+            heat transfer coefficient on the outside surface, W/m2 K
+        Notes:
+            This value is supposed to apply for the vertical glasses.
+        """
 
         # section 5.4.2
-        return 4.9 * epsilon + 16.3
+        return 4.9 * Glass.get_epsilon() + 16.3
 
     def get_heat_transmittance(self):
         """
