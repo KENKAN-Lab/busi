@@ -3,3 +3,4 @@
 .idea/
 src/__pycache__/
 tests/__pycache__/
+src/window/__pycache__/
