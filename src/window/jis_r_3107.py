@@ -1,11 +1,11 @@
-from enum import Enum
-
 """ Evaluation on thermal resistance of float glasses and thermal transmittance of glazing
 
 This module is for evaluation on thermal resistance of float glassess and thermal transmittance of glazing, which is
 based on JIS R3107 1988.
 
 """
+
+from enum import Enum
 
 
 class GlassDirection(Enum):
