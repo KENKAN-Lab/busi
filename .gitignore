@@ -1,6 +1,4 @@
 # Jupyter Notebook
 .ipynb_checkpoints
 .idea/
-src/__pycache__/
-tests/__pycache__/
-src/window/__pycache__/
+__pycache__
