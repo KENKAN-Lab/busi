@@ -3,7 +3,14 @@ import unittest
 
 def get_suite():
 
-    return unittest.defaultTestLoader.discover("tests", pattern="test_*.py")
+    test_suite = unittest.TestSuite()
+
+    all_test_suite = unittest.defaultTestLoader.discover("tests", pattern="test_*.py")
+
+    for ts in all_test_suite:
+        test_suite.addTest(ts)
+
+    return test_suite
 
 
 if __name__ == "__main__":
