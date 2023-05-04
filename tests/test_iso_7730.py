@@ -1,6 +1,6 @@
 import unittest
 
-from src.iso_7730 import get_pmv_ppd, get_p_a
+from busi.iso_7730 import get_pmv_ppd, get_p_a
 
 
 class TestPMV_PPD(unittest.TestCase):

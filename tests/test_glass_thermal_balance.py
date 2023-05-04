@@ -1,5 +1,5 @@
 import unittest
-from src.window import glass_thermal_balance as t
+from busi.window import glass_thermal_balance as t
 import numpy as np
 
 

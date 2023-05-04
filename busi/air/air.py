@@ -1,6 +1,6 @@
-from src.temperature import Temperature
-import src.vapor_pressure as vp
-import src.saturated_vapor_pressure as svp
+from busi.air.temperature import Temperature
+from busi.air import vapor_pressure as vp
+from busi.air import saturated_vapor_pressure as svp
 
 
 class Air:
@@ -162,7 +162,7 @@ class Air:
             saturated vapor pressure, Pa
         """
 
-        return svp.get_saturated_vapor_pressure(self.svpeq, self.eqtype, self._t.K)
+        return svp.svp(self.svpeq, self.eqtype, self._t.K)
 
     SVP = property(get_SVP, None)
 
@@ -175,7 +175,7 @@ class Air:
             saturated absolute humidiy, kg/kgDA
         """
 
-        return vp.get_saturated_absolute_humidity(self._t.K, self.svpeq, self.eqtype)
+        return vp._get_saturated_absolute_humidity(self._t.K, self.svpeq, self.eqtype)
 
     SAH = property(get_SAH, None)
 
@@ -188,6 +188,6 @@ class Air:
             dew point, Temperature
         """
 
-        return Temperature(vp.get_dew_point_temp(self._ah, self.svpeq, self.eqtype))
+        return Temperature(vp.t_dewp(self._ah, self.svpeq, self.eqtype))
 
     DPT = property(get_DPT, None)

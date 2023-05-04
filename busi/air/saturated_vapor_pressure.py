@@ -1,9 +1,96 @@
 import math
 from collections import namedtuple
+from typing import Tuple
 
 
-def saturated_vapor_pressure_SONNTAG(status: str, t: float) -> (float, float):
-    """calculate the saturated vapor pressure and its differential
+def svp(equation: str, status: str, t: float) -> float:
+    """Calculate the saturated vapor pressure.
+
+    Args:
+        equation: used equation name
+        status: 'water' or 'ice'
+        t: temperature, K
+
+    Returns:
+        saturated vapor pressure, Pa
+    
+    Notes:
+        The equations prepared are below and the equations with asterisk need the status of water or ice.
+        - SONNTAG *
+        - WMO
+        - WexlerHyland *
+        - Tetens *
+        - BriggsSacket *
+        - Antoine *
+        - GoffGratch *
+    """
+
+    if t < 0:
+        raise ValueError('ERROR: Temperature can not be less than 0 K.')
+
+    if equation == 'SONNTAG':
+        return _saturated_vapor_pressure_SONNTAG(status, t)[0]
+    elif equation == 'WMO':
+        return _saturated_vapor_pressure_WMO(t)[0]
+    elif equation == 'WexlerHyland':
+        return _saturated_vapor_pressure_WH(status, t)[0]
+    elif equation == 'Tetens':
+        return _saturated_vapor_pressure_tetens(status, t)[0]
+    elif equation == 'BriggsSacket':
+        return _saturated_vapor_pressure_BS(status, t)[0]
+    elif equation == 'Antoine':
+        return _saturated_vapor_pressure_antoine(t)[0]
+    elif equation == 'GoffGratch':
+        return _saturated_vapor_pressure_GoffGratch(status, t)[0]
+    else:
+        raise ValueError('ERROR: false name of saturated vapor equation')
+
+
+def dsvp_dt(equation: str, status: str, t: float) -> float:
+    """Calculate the differential of the saturated vapor pressure.
+
+    Args:
+        equation: used equation name
+        status: 'water' or 'ice'
+        t: temperature, K
+
+    Returns:
+        differential of saturated vapor pressure, Pa/K
+
+    Notes:
+        The equations prepared are below and the equations with asterisk need the status of water or ice.
+        - SONNTAG *
+        - WMO
+        - WexlerHyland *
+        - Tetens *
+        - BriggsSacket *
+        - Antoine *
+        - GoffGratch *
+    """
+
+    if t < 0:
+        raise ValueError('ERROR: Temperature can not be less than 0 K.')
+
+    if equation == 'SONNTAG':
+        return _saturated_vapor_pressure_SONNTAG(status, t)[1]
+    elif equation == 'WMO':
+        return _saturated_vapor_pressure_WMO(t)[1]
+    elif equation == 'WexlerHyland':
+        return _saturated_vapor_pressure_WH(status, t)[1]
+    elif equation == 'Tetens':
+        return _saturated_vapor_pressure_tetens(status, t)[1]
+    elif equation == 'BriggsSacket':
+        return _saturated_vapor_pressure_BS(status, t)[1]
+    elif equation == 'Antoine':
+        return _saturated_vapor_pressure_antoine(t)[1]
+    elif equation == 'GoffGratch':
+        return _saturated_vapor_pressure_GoffGratch(status, t)[1]
+    else:
+        raise ValueError('ERROR: false name of saturated vapor equation')
+
+
+def _saturated_vapor_pressure_SONNTAG(status: str, t: float) -> Tuple[float, float]:
+    """Calculate the saturated vapor pressure and its differential.
 
     Args:
         status: 'water' or 'ice'
@@ -31,8 +118,8 @@ def saturated_vapor_pressure_SONNTAG(status: str, t: float) -> (float, float):
     return pvs, dpvs_dt
 
 
-def saturated_vapor_pressure_WMO(t: float) -> (float, float):
-    """calculate the saturated vapor pressure and its differential
+def _saturated_vapor_pressure_WMO(t: float) -> Tuple[float, float]:
+    """Calculate the saturated vapor pressure and its differential.
 
     Args:
         t: temperature, K
@@ -56,8 +143,8 @@ def saturated_vapor_pressure_WMO(t: float) -> (float, float):
     return 10**ew, 10**ew * dew_dt * math.log(10.0)
 
 
-def saturated_vapor_pressure_WH(status: str, t: float) -> (float, float):
-    """calculate the saturated vapor pressure and its differential
+def _saturated_vapor_pressure_WH(status: str, t: float) -> Tuple[float, float]:
+    """Calculate the saturated vapor pressure and its differential.
 
     Args:
         status: 'water' or 'ice'
@@ -85,8 +172,8 @@ def saturated_vapor_pressure_WH(status: str, t: float) -> (float, float):
     return pvs, dpvs_dt
 
 
-def saturated_vapor_pressure_tetens(status: str, t: float) -> (float, float):
-    """calculate the saturated vapor pressure and its differential
+def _saturated_vapor_pressure_tetens(status: str, t: float) -> Tuple[float, float]:
+    """Calculate the saturated vapor pressure and its differential.
 
     Args:
         status: 'water' or 'ice'
@@ -111,8 +198,8 @@ def saturated_vapor_pressure_tetens(status: str, t: float) -> (float, float):
     return pvs, dpvs_dt
 
 
-def saturated_vapor_pressure_BS(status: str, t: float) -> (float, float):
-    """calculate the saturated vapor pressure and its differential
+def _saturated_vapor_pressure_BS(status: str, t: float) -> Tuple[float, float]:
+    """Calculate the saturated vapor pressure and its differential.
 
     Args:
         status: 'water' or 'ice'
@@ -140,8 +227,8 @@ def saturated_vapor_pressure_BS(status: str, t: float) -> (float, float):
     return pvs, dpvs_dt
 
 
-def saturated_vapor_pressure_antoine(t: float) -> (float, float):
-    """calculate the saturated vapor pressure and its differential
+def _saturated_vapor_pressure_antoine(t: float) -> Tuple[float, float]:
+    """Calculate the saturated vapor pressure and its differential.
 
     Args:
         t: temperature, K
@@ -163,7 +250,7 @@ def saturated_vapor_pressure_antoine(t: float) -> (float, float):
     return pvs * 101325 / 760, dpvs_dt * 101325 / 760  # 760mmHg = 101325 Pa
 
 
-def saturated_vapor_pressure_GoffGratch(status: str, t: float) -> (float, float):
+def _saturated_vapor_pressure_GoffGratch(status: str, t: float) -> Tuple[float, float]:
     """calculate the saturated vapor pressure and its differential
 
     Args:
@@ -201,69 +288,3 @@ def saturated_vapor_pressure_GoffGratch(status: str, t: float) -> (float, float)
         'water': (pvs_w * 100, dpvs_dt_w * 100),
         'ice': (pvs_i * 100, dpvs_dt_i * 100)
     }[status]
-
-
-def get_saturated_vapor_pressure(equation: str, status: str, t: float) -> float:
-    """calculate the saturated vapor pressure
-
-    Args:
-        equation: used equation name
-        status: 'water' or 'ice'
-        t: temperature, K
-
-    Returns:
-        saturated vapor pressure, Pa
-    """
-
-    if t < 0:
-        raise ValueError('ERROR: Temperature can not be less than 0 K.')
-
-    if equation == 'SONNTAG':
-        return saturated_vapor_pressure_SONNTAG(status, t)[0]
-    elif equation == 'WMO':
-        return saturated_vapor_pressure_WMO(t)[0]
-    elif equation == 'WexlerHyland':
-        return saturated_vapor_pressure_WH(status, t)[0]
-    elif equation == 'Tetens':
-        return saturated_vapor_pressure_tetens(status, t)[0]
-    elif equation == 'BriggsSacket':
-        return saturated_vapor_pressure_BS(status, t)[0]
-    elif equation == 'Antoine':
-        return saturated_vapor_pressure_antoine(t)[0]
-    elif equation == 'GoffGratch':
-        return saturated_vapor_pressure_GoffGratch(status, t)[0]
-    else:
-        raise ValueError('ERROR: false name of saturated vapor equation')
-
-
-def get_saturated_vapor_pressure_differential(equation: str, status: str, t: float) -> float:
-    """calculate the saturated vapor pressure and its differential
-
-    Args:
-        equation: used equation name
-        status: 'water' or 'ice'
-        t: temperature, K
-
-    Returns:
-        differential of saturated vapor pressure, Pa/K
-    """
-
-    if t < 0:
-        raise ValueError('ERROR: Temperature can not be less than 0 K.')
-
-    if equation == 'SONNTAG':
-        return saturated_vapor_pressure_SONNTAG(status, t)[1]
-    elif equation == 'WMO':
-        return saturated_vapor_pressure_WMO(t)[1]
-    elif equation == 'WexlerHyland':
-        return saturated_vapor_pressure_WH(status, t)[1]
-    elif equation == 'Tetens':
-        return saturated_vapor_pressure_tetens(status, t)[1]
-    elif equation == 'BriggsSacket':
-        return saturated_vapor_pressure_BS(status, t)[1]
-    elif equation == 'Antoine':
-        return saturated_vapor_pressure_antoine(t)[1]
-    elif equation == 'GoffGratch':
-        return saturated_vapor_pressure_GoffGratch(status, t)[1]
-    else:
-        raise ValueError('ERROR: false name of saturated vapor equation')

@@ -1,6 +1,6 @@
 import unittest
 
-from src.window import multiple_reflection as mr
+from busi.window import multiple_reflection as mr
 
 
 class GlassTest(unittest.TestCase):

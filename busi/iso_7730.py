@@ -1,7 +1,7 @@
 import math
 from scipy.optimize import newton
 
-import src.saturated_vapor_pressure as svp
+import busi.air.saturated_vapor_pressure as svp
 
 
 def get_pmv_ppd(
@@ -241,7 +241,7 @@ def get_p_a(rh: float, t_a: float) -> float:
     """
 
     # the saturated vapour pressure, Pa
-    p_sat = svp.get_saturated_vapor_pressure(equation='SONNTAG', status='water', t=t_a + 273.15)
+    p_sat = svp.svp(equation='SONNTAG', status='water', t=t_a + 273.15)
 
     return rh / 100.0 * p_sat
 

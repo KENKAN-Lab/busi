@@ -3,8 +3,8 @@ import datetime
 import sys
 sys.path.append('../')
 
-from src.air import Air
-from src.temperature import Temperature
+from busi.air import Air
+from busi.air.temperature import Temperature
 
 
 class ExternalCondition:
